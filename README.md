@@ -1,37 +1,236 @@
-# 配置信息
-<pre><code>
-[path]
-   file_path         = /tmp   //本地同步的目录,可以写多个
-[ftp]
-   ftpfile_path     = /    //ftp服务器上的目录 
-   ftp_server_ip    = xxxx  //服务器ip
-   ftp_server_port  = 21                     
-   ftp_server_name  = xxx      //账号
-   ftp_server_pwd   = xxx      //密码         
-   local_ip         = 192.168.56.1    //这个留着以后用 
-   local_port       = 80             //这个留着以后用 
-   comm_way         = udp             //ftp协议    
-[file]
-   file_log         = .log          //支持同步的文件类型
-   log_print        = ture          //是否开启日志输出
-</code></pre>
-* * *
-# 语法
- 例如[path] [file] 这个可以写多个配置地址
- 
- * * *
- # 调用
- <pre><code>
-    ftpConfig := new(Config)
-    ftpConfig.InitConfig("config.ini")
-    sync_path := ftpConfig.Read("path", "file_path")
-    sync_type := ftpConfig.Read("file", "file_log")
-    sync_path_jpg := ftpConfig.Read("path", "file_path_jpg")
-    sync_type_jpg := ftpConfig.Read("file", "file_jpg")
-    WalkDir(sync_path, sync_type)
-    WalkDir(sync_path_jpg, sync_type_jpg)
-</code></pre>
-* * *
-  ![go_sync_ftp](./jpg/1.png)
-  ![go_sync_ftp](./jpg/2.png)
- 
+# 🎲 加密货币蒙特卡洛模拟器
+
+基于历史数据、恐惧贪婪指数和市场事件的加密货币价格预测模拟系统。
+
+## ✨ 功能特点
+
+- 📊 **实时市场数据**: 通过 Binance API 获取 BTC、ETH、LTC、ETC 的实时价格
+- 🎯 **蒙特卡洛模拟**: 使用几何布朗运动 (GBM) 和跳跃扩散模型进行价格模拟
+- 😱 **恐惧贪婪指数**: 整合市场情绪指标调整模拟参数
+- 📈 **多因素分析**: 考虑历史波动率、市场事件（如10.11大瀑布、12月降息）
+- 💼 **投资组合模拟**: 支持多资产组合分配和风险分析
+- 🎨 **可视化界面**: 交互式 Web 界面，展示价格分布、收益曲线、置信区间等
+
+## 🏗️ 系统架构
+
+```
+.
+├── app.py                      # Flask Web 应用主程序
+├── monte_carlo_engine.py       # 蒙特卡洛模拟引擎
+├── binance_data.py            # Binance API 数据获取
+├── fear_greed_index.py        # 恐惧贪婪指数分析
+├── requirements.txt           # Python 依赖
+├── start.sh                   # 快速启动脚本
+├── templates/
+│   └── index.html             # Web 界面模板
+├── static/
+│   ├── css/
+│   │   └── style.css          # 样式文件
+│   └── js/
+│       └── app.js             # 前端交互逻辑
+└── data/                       # 数据缓存目录
+```
+
+## 📦 安装说明
+
+### 1. 克隆项目
+
+```bash
+git clone <repository_url>
+cd crypto-monte-carlo-simulator
+```
+
+### 2. 安装依赖
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. 配置 Binance API（可选）
+
+如果你有 Binance API Key，可以在 `app.py` 中配置以获得更高的请求限额：
+
+```python
+market_data = CryptoMarketData(
+    api_key='YOUR_API_KEY',
+    api_secret='YOUR_API_SECRET'
+)
+```
+
+**注意**: 如果不配置 API Key，仍然可以获取公开市场数据。
+
+## 🚀 使用方法
+
+### 启动服务器
+
+```bash
+python app.py
+```
+
+服务器将在 `http://localhost:5000` 启动。
+
+### 访问 Web 界面
+
+在浏览器中打开 `http://localhost:5000`，你将看到：
+
+1. **市场概况**: 当前 BTC、ETH、LTC、ETC 价格和 24 小时涨跌
+2. **恐惧贪婪指数**: 当前市场情绪指标
+3. **模拟参数设置**:
+   - 单一资产模拟
+   - 投资组合模拟
+4. **结果展示**:
+   - 价格模拟路径
+   - 最终价格分布
+   - 投资收益分布
+   - 价格置信区间
+
+### 单一资产模拟
+
+1. 选择币种（BTC/ETH/LTC/ETC）
+2. 设置投资金额
+3. 设置模拟天数（默认 90 天，约 3 个月）
+4. 选择模拟次数（推荐 1000 次）
+5. 点击"开始模拟"
+
+### 投资组合模拟
+
+1. 为每个币种分配资金
+2. 设置模拟天数和模拟次数
+3. 点击"开始组合模拟"
+
+## 🧮 模型说明
+
+### 蒙特卡洛模拟引擎
+
+使用改进的几何布朗运动模型：
+
+```
+dS = μ * S * dt + σ * S * dW + J * S
+```
+
+其中：
+- `S`: 资产价格
+- `μ`: 漂移率（考虑恐惧贪婪指数调整）
+- `σ`: 波动率（基于历史数据）
+- `dW`: 维纳过程（随机项）
+- `J`: 跳跃扩散项（模拟极端事件）
+
+### 恐惧贪婪指数调整
+
+根据指数值调整漂移率：
+
+- **极度恐惧 (0-25)**: 负面影响，但考虑触底反弹
+- **恐惧 (25-45)**: 轻微负面影响
+- **中性 (45-55)**: 无影响
+- **贪婪 (55-75)**: 正面影响
+- **极度贪婪 (75-100)**: 正面但可能回调
+
+### 市场事件影响
+
+#### 10.11 大瀑布事件
+- 190 亿美金合约清算
+- 影响逐渐减弱（指数恢复曲线）
+- 约 60 天恢复期
+
+#### 12 月降息
+- 提前 7 天开始反应
+- 降息后 30 天内强化正面影响
+- 影响逐渐消化
+
+### 风险指标
+
+- **VaR (Value at Risk)**: 95% 置信度下的最大损失
+- **夏普比率**: 风险调整后收益
+- **盈利概率**: 模拟中盈利的比例
+
+## 📊 结果解读
+
+### 关键指标
+
+- **预期价值**: 所有模拟路径的平均最终价值
+- **预期收益**: 平均收益金额和收益率
+- **盈利概率**: 获得正收益的可能性
+- **最佳/最坏情况**: 极端情况下的价值
+
+### 图表说明
+
+1. **价格模拟路径**: 展示 50 条样本路径，观察价格可能的走势
+2. **最终价格分布**: 直方图显示价格分布，判断价格区间概率
+3. **投资收益分布**: 收益的概率分布，绿色为盈利，红色为亏损
+4. **价格置信区间**: 扇形图显示不同置信度的价格范围
+
+## ⚠️ 免责声明
+
+本模拟器仅供**教育和研究**目的使用，**不构成任何投资建议**。
+
+- 加密货币市场**高度波动**，存在巨大风险
+- 历史数据**不能预测**未来表现
+- 模拟结果基于统计模型，**实际市场可能完全不同**
+- 投资前请进行**充分研究**并咨询专业顾问
+- 请勿投入超过你**能够承受损失**的资金
+
+## 🔧 高级配置
+
+### 调整模拟参数
+
+在 `monte_carlo_engine.py` 中可以调整：
+
+- **波动率**: 影响价格波动幅度
+- **跳跃强度**: 极端事件发生频率
+- **跳跃幅度**: 极端事件影响大小
+
+### 自定义恐惧贪婪数据
+
+在 `app.py` 的 `initialize_data()` 函数中更新恐惧贪婪指数数据。
+
+### 添加更多币种
+
+1. 在 `binance_data.py` 的 `SUPPORTED_COINS` 字典中添加交易对
+2. 更新前端界面选项
+
+## 🐛 故障排除
+
+### 无法获取价格数据
+
+- 检查网络连接
+- 确认 Binance API 是否可访问
+- 尝试配置 API Key
+
+### 模拟运行缓慢
+
+- 减少模拟次数（从 1000 降到 500）
+- 减少模拟天数
+- 使用更快的服务器
+
+### 图表不显示
+
+- 检查浏览器控制台错误
+- 确认 Chart.js CDN 可访问
+- 尝试清除浏览器缓存
+
+## 📚 技术栈
+
+- **后端**: Python, Flask
+- **数据处理**: NumPy, Pandas
+- **API**: Binance API (python-binance)
+- **前端**: HTML5, CSS3, JavaScript
+- **图表**: Chart.js
+- **HTTP 客户端**: Axios
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 📄 许可证
+
+MIT License
+
+## 🙏 致谢
+
+- Binance API 提供市场数据
+- Alternative.me 恐惧贪婪指数
+- Chart.js 可视化库
+
+---
+
+**祝投资顺利！记住：永远做好风险管理。** 🚀📈
