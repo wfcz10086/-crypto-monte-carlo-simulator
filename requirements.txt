@@ -1,19 +1,19 @@
 # 加密货币蒙特卡洛模拟器依赖
 
 # Web 框架
-Flask==3.0.0
-Werkzeug==3.0.1
+Flask
+Werkzeug
 
 # 数据处理
-numpy==1.24.3
-pandas==2.0.3
+numpy
+pandas
 
 # Binance API
-python-binance==1.0.19
+python-binance
 
 # HTTP 请求
-requests==2.31.0
+requests
 
 # 可选：如果需要更高级的数据可视化后端
-# matplotlib==3.7.2
-# plotly==5.18.0
+# matplotlib
+# plotly
