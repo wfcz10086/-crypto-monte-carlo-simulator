@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加密货币蒙特卡洛模拟器</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header>
+            <h1>🎲 加密货币蒙特卡洛模拟器</h1>
+            <p class="subtitle">基于历史数据、恐惧贪婪指数和市场事件的价格预测模拟</p>
+        </header>
+
+        <!-- 市场概况 -->
+        <section class="market-overview" id="marketOverview">
+            <h2>📊 市场概况</h2>
+            <div class="market-cards">
+                <div class="market-card loading">
+                    <div class="card-header">BTC</div>
+                    <div class="card-price">加载中...</div>
+                    <div class="card-change">--</div>
+                </div>
+                <div class="market-card loading">
+                    <div class="card-header">ETH</div>
+                    <div class="card-price">加载中...</div>
+                    <div class="card-change">--</div>
+                </div>
+                <div class="market-card loading">
+                    <div class="card-header">LTC</div>
+                    <div class="card-price">加载中...</div>
+                    <div class="card-change">--</div>
+                </div>
+                <div class="market-card loading">
+                    <div class="card-header">ETC</div>
+                    <div class="card-price">加载中...</div>
+                    <div class="card-change">--</div>
+                </div>
+            </div>
+
+            <!-- 恐惧贪婪指数 -->
+            <div class="fear-greed-section">
+                <h3>😱 恐惧与贪婪指数</h3>
+                <div class="fear-greed-display" id="fearGreedDisplay">
+                    <div class="fng-value" id="fngValue">--</div>
+                    <div class="fng-label" id="fngLabel">加载中...</div>
+                    <div class="fng-gauge">
+                        <div class="gauge-bar" id="gaugeBar"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 模拟控制 -->
+        <section class="simulation-control">
+            <h2>⚙️ 模拟参数设置</h2>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('single')">单一资产</button>
+                <button class="tab-btn" onclick="switchTab('portfolio')">投资组合</button>
+            </div>
+
+            <!-- 单一资产模拟 -->
+            <div id="singleAssetTab" class="tab-content active">
+                <form id="singleSimForm">
+                    <div class="form-group">
+                        <label for="symbol">选择币种：</label>
+                        <select id="symbol" name="symbol">
+                            <option value="BTC">Bitcoin (BTC)</option>
+                            <option value="ETH">Ethereum (ETH)</option>
+                            <option value="LTC">Litecoin (LTC)</option>
+                            <option value="ETC">Ethereum Classic (ETC)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="investment">投资金额 (USD)：</label>
+                        <input type="number" id="investment" name="investment" value="10000" min="100" step="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="days">模拟天数：</label>
+                        <input type="number" id="days" name="days" value="90" min="7" max="365">
+                        <small>默认: 90天 (约3个月)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="numSims">模拟次数：</label>
+                        <select id="numSims" name="numSims">
+                            <option value="500">500 (快速)</option>
+                            <option value="1000" selected>1000 (推荐)</option>
+                            <option value="2000">2000 (精确)</option>
+                            <option value="5000">5000 (高精度)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="runSimBtn">
+                        🚀 开始模拟
+                    </button>
+                </form>
+            </div>
+
+            <!-- 投资组合模拟 -->
+            <div id="portfolioTab" class="tab-content">
+                <form id="portfolioSimForm">
+                    <div class="form-group">
+                        <label>资金分配：</label>
+                        <div class="allocation-inputs">
+                            <div class="allocation-item">
+                                <label>BTC:</label>
+                                <input type="number" id="alloc_btc" value="4000" min="0" step="100">
+                            </div>
+                            <div class="allocation-item">
+                                <label>ETH:</label>
+                                <input type="number" id="alloc_eth" value="3000" min="0" step="100">
+                            </div>
+                            <div class="allocation-item">
+                                <label>LTC:</label>
+                                <input type="number" id="alloc_ltc" value="2000" min="0" step="100">
+                            </div>
+                            <div class="allocation-item">
+                                <label>ETC:</label>
+                                <input type="number" id="alloc_etc" value="1000" min="0" step="100">
+                            </div>
+                        </div>
+                        <div class="total-allocation">
+                            总投资: $<span id="totalAllocation">10000</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="portfolioDays">模拟天数：</label>
+                        <input type="number" id="portfolioDays" value="90" min="7" max="365">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="portfolioSims">模拟次数：</label>
+                        <select id="portfolioSims">
+                            <option value="500">500 (快速)</option>
+                            <option value="1000" selected>1000 (推荐)</option>
+                            <option value="2000">2000 (精确)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="runPortfolioBtn">
+                        🚀 开始组合模拟
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 加载指示器 -->
+        <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>正在运行蒙特卡洛模拟...</p>
+        </div>
+
+        <!-- 结果展示 -->
+        <section class="results-section" id="resultsSection" style="display: none;">
+            <h2>📈 模拟结果</h2>
+
+            <!-- 关键指标 -->
+            <div class="key-metrics" id="keyMetrics">
+                <!-- 动态生成 -->
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="charts-container">
+                <!-- 价格路径图 -->
+                <div class="chart-wrapper">
+                    <h3>价格模拟路径</h3>
+                    <canvas id="pricePathChart"></canvas>
+                </div>
+
+                <!-- 价格分布图 -->
+                <div class="chart-wrapper">
+                    <h3>最终价格分布</h3>
+                    <canvas id="priceDistChart"></canvas>
+                </div>
+
+                <!-- 收益分布图 -->
+                <div class="chart-wrapper">
+                    <h3>投资收益分布</h3>
+                    <canvas id="profitDistChart"></canvas>
+                </div>
+
+                <!-- 概率密度图 -->
+                <div class="chart-wrapper">
+                    <h3>价格置信区间</h3>
+                    <canvas id="confidenceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 详细统计 -->
+            <div class="detailed-stats" id="detailedStats">
+                <!-- 动态生成 -->
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer>
+            <p>⚠️ 免责声明：本模拟器仅供教育和研究目的，不构成投资建议。加密货币投资有风险，请谨慎决策。</p>
+            <p>💡 模型考虑因素：历史波动率、恐惧贪婪指数、10.11大瀑布事件、12月降息预期等</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
